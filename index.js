@@ -1,6 +1,7 @@
 const express = require("express");
 const multer = require("multer");
 const nodemailer = require("nodemailer");
+const bodyParser = require("body-parser");
 
 require("dotenv").config();
 const cors = require("cors");
@@ -13,11 +14,14 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+
 // Set up multer storage and file upload middleware
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads/");
-  },
+  // destination: function (req, file, cb) {
+  //   cb(null, "uploads/");
+  // },
   filename: function (req, file, cb) {
     cb(null, Date.now() + "-" + file.originalname);
   },
@@ -58,7 +62,7 @@ app.post("/send-email", upload.single("file"), (req, res) => {
     attachments: [
       {
         filename: file.originalname,
-        path: require("path").resolve(file.path),
+        path: file.path,
       },
     ],
   };
