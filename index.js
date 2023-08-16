@@ -24,6 +24,17 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
+// Create a Nodemailer transporter
+const transporter = nodemailer.createTransport({
+  // Configure your email provider details here
+  service: "Gmail",
+  auth: {
+    user: `${process.env.DB_EMAIL}`,
+    pass: `${process.env.DB_PASS}`,
+  },
+});
+
+// resume
 app.post("/send-email", upload.single("file"), (req, res) => {
   const {
     firstName,
@@ -35,16 +46,6 @@ app.post("/send-email", upload.single("file"), (req, res) => {
     address,
   } = req.body;
   const file = req.file;
-
-  // Create a Nodemailer transporter
-  const transporter = nodemailer.createTransport({
-    // Configure your email provider details here
-    service: "Gmail",
-    auth: {
-      user: `${process.env.DB_EMAIL}`,
-      pass: `${process.env.DB_PASS}`,
-    },
-  });
 
   // Define the email options
   const mailOptions = {
@@ -60,6 +61,59 @@ app.post("/send-email", upload.single("file"), (req, res) => {
         path: require("path").resolve(file.path),
       },
     ],
+  };
+
+  // Send the email using the transporter
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.error(error);
+      res.status(500).json({ error: "Error sending email" });
+    } else {
+      console.log("Email sent:", info.response);
+      res.json({ success: "Email sent successfully" });
+    }
+  });
+});
+
+// contact
+app.post("/send-email-contact", upload.single("file"), (req, res) => {
+  const { firstName, lastName, email, phoneNumber, service, message } =
+    req.body;
+
+  // Define the email options
+  const mailOptions = {
+    from: email,
+    to: `${process.env.DB_EMAIL}`,
+    subject: "New Contact Submission",
+    text: `Name: ${
+      firstName + " " + lastName
+    }\nEmail: ${email}\nPhone Number: ${phoneNumber}\nService: ${service}\nMessage: ${message}`,
+  };
+
+  // Send the email using the transporter
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.error(error);
+      res.status(500).json({ error: "Error sending email" });
+    } else {
+      console.log("Email sent:", info.response);
+      res.json({ success: "Email sent successfully" });
+    }
+  });
+});
+
+// project
+app.post("/send-email-project-details", upload.single("file"), (req, res) => {
+  const { firstName, lastName, email, phoneNumber, details } = req.body;
+
+  // Define the email options
+  const mailOptions = {
+    from: email,
+    to: `${process.env.DB_EMAIL}`,
+    subject: "New Project Submission",
+    text: `Name: ${
+      firstName + " " + lastName
+    }\nBusiness Email: ${email}\nPhone Number: ${phoneNumber}\nProject Details: ${details}`,
   };
 
   // Send the email using the transporter
